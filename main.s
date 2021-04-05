@@ -10,7 +10,31 @@
     ;Creado: 24 mar, 2021
     ;Última modificación: 04 abril, 2021    
 ;-------------------------------------------------------------------------------
+    PROCESSOR 16F887
+    #include <xc.inc>
+        
+    CONFIG FOSC=INTRC_NOCLKOUT //Oscillador interno
+    CONFIG WDTE=OFF	//WDT disabled (reinicio repetitivo del pic)
+    CONFIG PWRTE=OFF	//PWRT enabled (espera de 72ms al iniciar)
+    CONFIG MCLRE=OFF	//El pin de MCLR se utiliza como I/O
+    CONFIG CP=OFF	//Sin proteccion de codigo
+    CONFIG CPD=OFF	//Sin proteccion de datos
 
+    CONFIG BOREN=OFF	//Sin reinicio cuando el voltaje de alimentacion baja 4v
+    CONFIG IESO=OFF	//Reinicio sin cambio de reloj de interno a externo
+    CONFIG FCMEN=OFF	//Cambio de reloj externo a interno en caso de fallo
+    CONFIG LVP=OFF	//programacion en bajo voltaje permitida
+    
+    CONFIG WRT=OFF	//Proteccion de autoescritura por el programa desactivada
+    CONFIG BOR4V=BOR40V //Reinicio abajo de 4V, (BOR21v=2.1v)
+
+ PSECT resVect, class=CODE, abs, delta=2
+ ORG 0x00
+ GOTO CONFIG_PROG
+ 
+ ORG 0X04
+
+ 
 CONFIG_PROG: ;Configuracion de los bits
     
     BSF STATUS, 5
