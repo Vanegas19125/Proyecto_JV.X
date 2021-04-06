@@ -8,7 +8,7 @@
     ;Hardware: Display 7 Seg, Push Buttom, Leds, Resistencias. 
     ;
     ;Creado: 24 mar, 2021
-    ;Última modificación: 04 abril, 2021    
+    ;Última modificación: 06 abril, 2021    
 ;-------------------------------------------------------------------------------
     PROCESSOR 16F887
     #include <xc.inc>
@@ -42,25 +42,24 @@ PSECT udata ;common memory
     CONTADOR3: DS 1
     CONTADOR4: DS 1 ;CONTADOR PARA LA CONFIGUCAGION
     ;VARIABLES PARA DIVISION
-    
     UNIDAD: DS 1
     DECENA: DS 1
     VAL_DIVISION: DS 1
     VER_CONTADOR4: DS 1 ;SI ES 1 MUESTRA DISP4 Y  SI ES 0 NO
     OPCION: DS 1 ;SEMAFORO QUE SE LE ESTA CONFIGURANDO, 0 SI NO SE ESTA 
     ENTRO_INT: DS 1;SI ENTRO A LA INTERRUPCION
-;PSECT udata_shr1 ;common memory
+    ;--- VARIABLES PARA GUARDAR VALOR TEMPORAL DE LA CONFIGURACION DEL SEMAFORO
     TEM1: DS 1
     TEM2: DS 1
     TEM3: DS 1
-    ;--- VALORES DE CUENTA REGRESIVA DEL SEMAFORO
+    ;--- PARA ALMACENAR VALORES DE CUENTA REGRESIVA DEL SEMAFORO
     SEMAFORO1: DS 1
     SEMAFORO2: DS 1
     SEMAFORO3: DS 1
     ;----- DELAYS -------
     DELAY: DS 1
     DELAY1: DS 1
-    ;-------- OPCION SEMAFORO ------
+    ;-------- OPCIONES SEMAFORO ------
     OPCION_SEM: DS 1
     CONT_TMR1: DS 1
     CONT_TMR2: DS 1
@@ -100,7 +99,7 @@ PUSH:
     RETURN
     
     
- TABLA7SEG: ;Tabla para pasar de binario a valor numerico en el display
+ TABLA7SEG: ;TABLA PARA PASAR DE BINARIO AL VALOR DEL 7 SEGMENTOS
     ANDLW  00001111B  
     addwf PCL, F
     retlw 00111111B ;0
@@ -112,7 +111,7 @@ PUSH:
     retlw 01111101B ;6
     retlw 00000111B ;7
     retlw 01111111B ;8
-    retlw 01100111B ;9
+    retlw 01101111B ;9
     retlw 0 ;A
     retlw 0 ;B
     retlw 0 ;C
@@ -131,34 +130,34 @@ PUSH:
     GOTO OP3
     GOTO OP4
     GOTO OP5
-    OP0:
+ OP0:
     BCF PORTB,1
     BCF PORTB,2 
     BCF PORTB,3
-    CLRF	VER_CONTADOR4
+    CLRF VER_CONTADOR4
     RETURN
-    OP1:
+ OP1:
     BSF PORTB,1
     MOVLW 1
     MOVWF VER_CONTADOR4
     MOVF SEMAFORO1,W
-    MOVWF   CONTADOR4
+    MOVWF CONTADOR4
     RETURN
-    OP2:
+ OP2:
     BCF PORTB,1
     BSF PORTB,2
     MOVF CONTADOR4,W
     MOVWF TEM1
     MOVF SEMAFORO2,W
-    MOVWF   CONTADOR4
+    MOVWF CONTADOR4
     RETURN
-    OP3:
+ OP3:
     BCF PORTB,2
     BSF PORTB,3
     MOVF CONTADOR4,W
     MOVWF TEM2
     MOVF SEMAFORO3,W
-    MOVWF   CONTADOR4
+    MOVWF CONTADOR4
     RETURN
     OP4:
     BSF PORTB,2
@@ -166,7 +165,7 @@ PUSH:
     MOVF CONTADOR4,W
     MOVWF TEM3
     RETURN
-    OP5:
+ OP5:
     MOVLW 4
     MOVWF OPCION
     RETURN
@@ -174,8 +173,7 @@ PUSH:
  SEMAFOROS:
     MOVLW 2
     MOVWF CONT_TMR1
-    
-    
+        
     MOVF OPCION_SEM, W
     ADDWF PCL, F
     
@@ -190,7 +188,7 @@ PUSH:
     GOTO SEM9
     CLRF OPCION_SEM
     
-    SEM1:
+ SEM1:
     MOVF SEMAFORO3,W
     MOVWF CONTADOR3
     
@@ -208,7 +206,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
-    SEM2:
+ SEM2:
     CLRF OPCION_TITILAR
     BSF T2CON, 2
     BSF PORTA,2
@@ -223,7 +221,7 @@ PUSH:
     RETURN
     
     
-    SEM3:
+ SEM3:
     BCF T2CON,2
     BCF PORTA,2
     
@@ -239,7 +237,7 @@ PUSH:
     RETURN
     
     
-    SEM4:
+ SEM4:
     MOVF SEMAFORO1,W
     MOVWF CONTADOR1
     BCF PORTA,1
@@ -256,7 +254,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
-    SEM5:
+ SEM5:
     MOVLW 1
     MOVWF OPCION_TITILAR
     BSF T2CON, 2
@@ -274,7 +272,7 @@ PUSH:
     RETURN
     
     
-    SEM6:
+ SEM6:
     BCF T2CON,2
     BCF PORTA, 5
     
@@ -289,7 +287,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
-    SEM7:
+ SEM7:
     
     MOVF SEMAFORO2,W
     MOVWF CONTADOR2
@@ -307,7 +305,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
-    SEM8:
+ SEM8:
     MOVLW 2
     MOVWF OPCION_TITILAR
     BSF T2CON,2
@@ -324,7 +322,7 @@ PUSH:
     RETURN
     
     
-    SEM9:
+ SEM9:
     BCF T2CON,2
     BCF PORTB,0
     
@@ -350,33 +348,33 @@ PUSH:
     GOTO TITILAR2
     GOTO TITILAR3
     
-    TITILAR1:
+ TITILAR1:
     BTFSC PORTA, 2
     GOTO ENCENDIDO1
     ;-- SI ESTA APAGADO
     BSF PORTA,2
     RETURN
-    ENCENDIDO1:
+ ENCENDIDO1:
     BCF PORTA,2
     RETURN
     
-    TITILAR2:
+ TITILAR2:
     BTFSC PORTA, 5
     GOTO ENCENDIDO2
     ;-- SI ESTA APAGADO
     BSF PORTA,5
     RETURN
-    ENCENDIDO2:
+ ENCENDIDO2:
     BCF PORTA,5
     RETURN
     
-    TITILAR3:
+ TITILAR3:
     BTFSC PORTB, 0
     GOTO ENCENDIDO3
     ;-- SI ESTA APAGADO
     BSF PORTB,0
     RETURN
-    ENCENDIDO3:
+ ENCENDIDO3:
     BCF PORTB,0
     RETURN
     
@@ -415,7 +413,7 @@ PUSH:
     MOVLW 1
     MOVWF ENTRO_INT
     ;CALL OPCIONES
-    INCDEC:
+ INCDEC:
     MOVF OPCION,W
     SUBLW 4
     BTFSS   STATUS,2
@@ -440,7 +438,7 @@ PUSH:
     CLRF OPCION
     CLRF OPCION_SEM
     BCF T2CON,2
-    SECUENCIA:
+ SECUENCIA:
     CLRF PORTC
     BSF	PORTA,0
     BSF	PORTA,3
@@ -460,7 +458,7 @@ PUSH:
     BSF PORTA,3
     BSF PORTA,6
     RETURN
-    RECHAZAR:
+ RECHAZAR:
     BTFSC PORTB_ANTERIOR,5
     GOTO INCREMENTAR_DECREMENTAR
     BTFSS PORTB_ACTUAL,5
@@ -470,7 +468,7 @@ PUSH:
     MOVWF ENTRO_INT
     RETURN
     
-    INCREMENTAR_DECREMENTAR:
+ INCREMENTAR_DECREMENTAR:
     BTFSC  PORTB_ANTERIOR,4 ;PARA INCREMENTAR
     GOTO DEC_OP1
     ;---- AQUI SIGUE SI ANTES ERA 0
@@ -484,7 +482,7 @@ PUSH:
     MOVLW 10
     MOVWF CONTADOR4
     
-    DEC_OP1:
+ DEC_OP1:
     BTFSC  PORTB_ANTERIOR,5 ;PARA INCREMENTAR
     RETURN
     ;---- AQUI SIGUE SI ANTES ERA 0
@@ -570,9 +568,7 @@ CONFIG_PROG: ;Configuracion de los bits
     ;-- CONFIGURACIO NDEL TIMER 2
     MOVLW 11111011B
     MOVWF T2CON
-    
-    
-    
+     
     MOVLW 6
     MOVWF TMR0 ;BANDERA SE ENCIENDE CADA 1mS
     
@@ -656,10 +652,8 @@ MULTIPLEX: ;SE VA A REALIZAR LA MULTIPLEXZCION DE LOS DISPLAY
     MOVF    CONTADOR4,W
     BTFSC PORTD, 7
     MOVF    CONTADOR4,W
-    
-    
-    
-    
+     
+
     MOVWF VAL_DIVISION
     CALL DIVISION
     
@@ -716,7 +710,4 @@ DIVISION:
     goto    $-1		    ;ejecutar linea anterior
     return	
  
-    
     END
-
-
