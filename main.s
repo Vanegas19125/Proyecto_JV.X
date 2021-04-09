@@ -90,13 +90,7 @@ PUSH:
     SWAPF WTEMP, W
     
     RETFIE
- ISR_TMR2:
-    BCF PIR1,1 
-    
-    DECF CONT_TMR2,F
-    BTFSC STATUS, 2
-    CALL TITILAR
-    RETURN
+ 
     
     
  TABLA7SEG: ;TABLA PARA PASAR DE BINARIO AL VALOR DEL 7 SEGMENTOS
@@ -119,7 +113,7 @@ PUSH:
     retlw 0 ;E
     retlw 0;F
  
- OPCIONES:
+ OPCIONES: ;Subrutinas para los 5 modos de operacion del semaforo
     CLRF ENTRO_INT
     MOVF   OPCION,W
     ADDWF PCL,F
@@ -159,7 +153,7 @@ PUSH:
     MOVF SEMAFORO3,W
     MOVWF CONTADOR4
     RETURN
-    OP4:
+ OP4:
     BSF PORTB,2
     BSF PORTB,1
     MOVF CONTADOR4,W
@@ -170,13 +164,14 @@ PUSH:
     MOVWF OPCION
     RETURN
  
- SEMAFOROS:
+ SEMAFOROS:   ;Subrutina para la funcion de los semaforos
     MOVLW 2
     MOVWF CONT_TMR1
         
     MOVF OPCION_SEM, W
     ADDWF PCL, F
-    
+    ;Creamos 9 subrutinas que nos serviran para las secuencias de los 3 
+	;semaforos sincronizados.
     GOTO SEM1
     GOTO SEM2
     GOTO SEM3
@@ -187,8 +182,9 @@ PUSH:
     GOTO SEM8
     GOTO SEM9
     CLRF OPCION_SEM
-    
- SEM1:
+;Las subrutinas de con prefijo SEW sirven para crear la secuencia de encendido
+    ;y apagado de los leds del semaforo
+ SEM1:	;primer semaforo en verde, el resto en rojo	    
     MOVF SEMAFORO3,W
     MOVWF CONTADOR3
     
@@ -206,7 +202,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
- SEM2:
+ SEM2:    ;Sub para verde titilante del primer semaforo, los demas en rojo
     CLRF OPCION_TITILAR
     BSF T2CON, 2
     BSF PORTA,2
@@ -221,7 +217,7 @@ PUSH:
     RETURN
     
     
- SEM3:
+ SEM3:	;Primer semaforo en amarillo, el resto en Rojo
     BCF T2CON,2
     BCF PORTA,2
     
@@ -237,7 +233,7 @@ PUSH:
     RETURN
     
     
- SEM4:
+ SEM4:	;Segundo semaforo en verde, resto en rojo
     MOVF SEMAFORO1,W
     MOVWF CONTADOR1
     BCF PORTA,1
@@ -254,7 +250,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
- SEM5:
+ SEM5:	;Verde titilante para el segundo semaforo, resto en rojo
     MOVLW 1
     MOVWF OPCION_TITILAR
     BSF T2CON, 2
@@ -272,7 +268,7 @@ PUSH:
     RETURN
     
     
- SEM6:
+ SEM6:	;Amarillo para el segundo, resto en rojo
     BCF T2CON,2
     BCF PORTA, 5
     
@@ -287,7 +283,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
- SEM7:
+ SEM7:	;Tercer semaforo en verde, los demas en rojo
     
     MOVF SEMAFORO2,W
     MOVWF CONTADOR2
@@ -305,7 +301,7 @@ PUSH:
     INCF OPCION_SEM,F 
     RETURN
     
- SEM8:
+ SEM8:	;Verde titilante para el tercer semaforo, los demas en rojo
     MOVLW 2
     MOVWF OPCION_TITILAR
     BSF T2CON,2
@@ -322,7 +318,7 @@ PUSH:
     RETURN
     
     
- SEM9:
+ SEM9:	;Amarillo para el tecer semaforo, los demas en rojo
     BCF T2CON,2
     BCF PORTB,0
     
@@ -336,7 +332,7 @@ PUSH:
     BTFSC  STATUS,2
     INCF OPCION_SEM,F 
     RETURN
-    
+ ;Aqui se progra el titileo de los leds verdes, los delays se hacen con el TMR2   
  TITILAR:
     MOVLW 5
     MOVWF CONT_TMR2
@@ -377,8 +373,14 @@ PUSH:
  ENCENDIDO3:
     BCF PORTB,0
     RETURN
+        
+ ISR_TMR2:
+    BCF PIR1,1 
     
-    
+    DECF CONT_TMR2,F
+    BTFSC STATUS, 2
+    CALL TITILAR
+    RETURN
     
  ISR_TMR1:
     BCF PIR1,0
@@ -388,7 +390,7 @@ PUSH:
     MOVWF TMR1H
     MOVLW   11011011B ;VALORES REALES PARA .5 SEGUNDOS
     MOVWF   TMR1L
-;    
+    
     DECF CONT_TMR1, F
     BTFSC STATUS, 2
     CALL SEMAFOROS
@@ -413,7 +415,7 @@ PUSH:
     MOVLW 1
     MOVWF ENTRO_INT
     ;CALL OPCIONES
- INCDEC:
+ INCDEC: ;Subrutina para incrementar y decrementar el contador de configuracion
     MOVF OPCION,W
     SUBLW 4
     BTFSS   STATUS,2
@@ -438,7 +440,7 @@ PUSH:
     CLRF OPCION
     CLRF OPCION_SEM
     BCF T2CON,2
- SECUENCIA:
+ SECUENCIA: ;Secuencia de reseteo del semaforo, Prendemos los leds en orden 
     CLRF PORTC
     BSF	PORTA,0
     BSF	PORTA,3
@@ -458,7 +460,7 @@ PUSH:
     BSF PORTA,3
     BSF PORTA,6
     RETURN
- RECHAZAR:
+ RECHAZAR:	;Subrutina para rechazar los cambios de los tiempos en la config
     BTFSC PORTB_ANTERIOR,5
     GOTO INCREMENTAR_DECREMENTAR
     BTFSS PORTB_ACTUAL,5
@@ -468,7 +470,7 @@ PUSH:
     MOVWF ENTRO_INT
     RETURN
     
- INCREMENTAR_DECREMENTAR:
+ INCREMENTAR_DECREMENTAR:   ;Subrutina para inc. y dec. el display de config
     BTFSC  PORTB_ANTERIOR,4 ;PARA INCREMENTAR
     GOTO DEC_OP1
     ;---- AQUI SIGUE SI ANTES ERA 0
@@ -482,7 +484,7 @@ PUSH:
     MOVLW 10
     MOVWF CONTADOR4
     
- DEC_OP1:
+ DEC_OP1:   ;Subrutina para hacer el over y underflow del display de config
     BTFSC  PORTB_ANTERIOR,5 ;PARA INCREMENTAR
     RETURN
     ;---- AQUI SIGUE SI ANTES ERA 0
@@ -497,13 +499,7 @@ PUSH:
     MOVWF CONTADOR4
     
     RETURN
-    
-
-    
-    
-    
-
-    
+      
 CONFIG_PROG: ;Configuracion de los bits
     
     BSF STATUS, 5
@@ -515,7 +511,7 @@ CONFIG_PROG: ;Configuracion de los bits
     BSF STATUS, 5 ;Banco 1
     BCF STATUS, 6 ;Banco 1
     
-    ;BSF	PIE1,0 ;ACTIVAR INTERRUPCION TMR1
+    
     
     CLRF TRISA
     CLRF TRISC
@@ -535,12 +531,11 @@ CONFIG_PROG: ;Configuracion de los bits
     
     BSF INTCON, 7 ;INTERRUPCION GLOBAL
     BSF INTCON, 6 ; INTERRUPCIOENS PERIFERICAS
-;    BSF INTCON, 5 ;INTERRUPCION TIMER0
     BSF INTCON, 3 ;INTERRUPCION DEL PUERTO B
-;    
+    
     BSF IOCB, 4
     BSF IOCB, 6
-    BSF IOCB, 5 ;ACTIVAR INTERRUPCION EN PIN RB0 Y RB1
+    BSF IOCB, 5 ;ACTIVAR INTERRUPCION EN PIN 
     
     
     MOVLW 195
@@ -549,7 +544,7 @@ CONFIG_PROG: ;Configuracion de los bits
     BSF PIE1, 1
     BCF STATUS, 5 ;Banco 0
    
-    ;configuracion del tmr1 interrupcion cada 0.5 s
+    ;configuracion del tmr1 cada 0.5 s
     BCF T1CON, 6 ;SIEMPRE ESTA CONTADO
     BSF	T1CON, 5
     BSF	T1CON, 4 ;PRESCALER !:8
@@ -565,7 +560,7 @@ CONFIG_PROG: ;Configuracion de los bits
     MOVWF TMR1L
     MOVLW   255
     MOVWF    TMR1H
-    ;-- CONFIGURACIO NDEL TIMER 2
+    ;-- CONFIGURACION DEL TIMER 2
     MOVLW 11111011B
     MOVWF T2CON
      
@@ -608,7 +603,7 @@ CONFIG_PROG: ;Configuracion de los bits
     MOVLW 5
     MOVWF CONT_TMR2
     
-LOOP:
+LOOP:	;Loop general del programa
     BTFSC INTCON, 2; SI SE ENCIENDE LA BANDERA DEL TIMER 
     CALL MULTIPLEX
     BTFSC PIR1,0
@@ -670,13 +665,13 @@ MULTIPLEX: ;SE VA A REALIZAR LA MULTIPLEXZCION DE LOS DISPLAY
     RETURN
 
     
-SALTAR_DISPLAY4:
+SALTAR_DISPLAY4: ;Subrutina para apagar el display cuando esta en el modo normal
     MOVLW 1
     BTFSC PORTD, 6
     MOVWF PORTD
     RETURN
     
-DIVISION:
+DIVISION:	;Subrutina para separar las decenas y unidades de los contadores
     ;BCF INTCON, 7
     
     CLRF DECENA
@@ -695,17 +690,17 @@ DIVISION:
     ;BSF INTCON, 7
     RETURN
   
- delay_big:
+ delay_big:		    ;Delay Big
     movlw   255		    ;valor inicial del contador 
     movwf   DELAY1
     call    delay_small	    ;rutina de delay
     decfsz  DELAY1, 1	    ;decrementar el contador
     goto    $-2		    ;ejecutar dos lineas atras
-    return		    ;t = (1 + 1 + 507(valor-1)+ 2 + 2) uS = 100mS
+    return		    ;
     
- delay_small:
+ delay_small:		    ;Delay Small
     movlw   255		    ;valor inicial del contador 
-    movwf   DELAY	    ;(valor-1)*3 uS + 2 uS = 500 us
+    movwf   DELAY	    ;
     decfsz  DELAY, 1   ;decrementar el contador
     goto    $-1		    ;ejecutar linea anterior
     return	
